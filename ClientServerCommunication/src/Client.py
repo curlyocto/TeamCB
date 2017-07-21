@@ -61,5 +61,5 @@ if __name__ == '__main__':
     while(client.get_connection_status()):
         print("Connected")
 
-    quit()
 
+        
