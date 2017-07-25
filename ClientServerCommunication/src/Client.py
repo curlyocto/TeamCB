@@ -1,4 +1,5 @@
 import socket
+import threading
 
 class Client():
 
@@ -16,6 +17,10 @@ class Client():
     # Client's Data Stacks
     _send_stack = []
     _receive_stack = []
+
+    # Clients send/receive threads
+    _tx_thread = None
+    _rx_thread = None
     
     # Client's constructor
     def __init__(self, ip, port, state = False):
@@ -31,11 +36,16 @@ class Client():
         except:
             print("Could not connect.")
         else:
-            
-            # TODO Add receive threading function here
-            # TODO Add send threading function here
-            
             self._is_connected = True
+            
+            # This is the transmit thread
+            self._tx_thread = threading.Thread(target=self._send)
+            self._tx_thread.start()
+
+            # This is the receive thread
+            self._rx_thread = threading.Thread(target=self._recv)
+            self._rx_thread.start()
+            
             print("Connected")
     
     #---------------------DO NOT CALL THESE FUNCTIONS!--------------------------
@@ -45,22 +55,31 @@ class Client():
     
     # This is a back-end function for putting data on to the receive stack
     def _recv(self):
-        try:
-            data = self._client_socket.recv(1024)
-            self._receive_stack.append(repr(data))
-        except:
-            print("Cound not/nothing to receive.")
+        while True:
+            if self._is_connected == False:
+                break
+            try:
+                data = self._client_socket.recv(1024)
+                self._receive_stack.append(repr(data))
+                #print("Receiving...")
+            except:
+                #print("Cound not/nothing to receive.")
+                pass
             
 
     # This is a back-end function to send data from the send stack
     def _send(self):
-        try:
-            self._client_socket.sendall(self._send_stack[0])
-            self._send_stack.pop(0)
-        except:
-            print("Could not/nothing to send.")
+        while True:
+            if self._is_connected == False:
+                break
+            try:
+                self._client_socket.sendall(self._send_stack[0])
+                self._send_stack.pop(0)
+                #print("Sending...")
+            except:
+                #print("Could not/nothing to send.")
+                pass
             
-
     #---------------------------------------------------------------------------
     
 
@@ -77,8 +96,8 @@ class Client():
             self._receive_stack.pop(0)
             return data
         except:
-            pass
             #print("No data on receive stack.")
+            pass
     
     # A simple wrapper function that gracefully closes the connection
     def close_connection(self):
@@ -123,6 +142,7 @@ if __name__ == '__main__':
     # Starts the socket connection
     client.start_connection()
 
+    while True:
     #-------An example of sending data through the higher level interface-------
     # The process behind this is:
     # 1. Higher level function pushes data onto the send stack
@@ -130,9 +150,9 @@ if __name__ == '__main__':
     # 3. The low level function then pops the send stack
     # There should be normally no data left on the send stack as demonstrated:
 
-    client.send(b"Hello World!")
-    client._send() # Should not be normally called, should be in a thread
-    print(client._send_stack)
+        client.send(b"Hello World!")
+        #client._send() # Should not be normally called, should be in a thread
+        #print("stack after send:", client._send_stack)
 
     #---------------------------------------------------------------------------
 
@@ -146,9 +166,10 @@ if __name__ == '__main__':
     # There can be data left one the receive stack if high level function is not
     # used to retrieve. The data will just be queued up.
 
-    client._recv() # Should not be normally called, should be in a thread
-    print(client.receive())
-    print(client._receive_stack)
+    #client._recv() # Should not be normally called, should be in a thread
+        client.receive()
+        #print(client.receive())
+        #print("stack after receive:", client._receive_stack)
 
     #---------------------------------------------------------------------------
 
