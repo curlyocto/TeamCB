@@ -48,11 +48,6 @@ class Client():
             
             print("Connected")
     
-    #---------------------DO NOT CALL THESE FUNCTIONS!--------------------------
-    # Instead use the respective functions receive and send to interact through
-    # their respective data stacks, as these functions are ment to be threaded at
-    # start-up of the socket object
-    
     # This is a back-end function for putting data on to the receive stack
     def _recv(self):
         while True:
@@ -79,9 +74,6 @@ class Client():
             except:
                 #print("Could not/nothing to send.")
                 pass
-            
-    #---------------------------------------------------------------------------
-    
 
     # A simple wrapper function to put outbound data on the send stack
     # Data is appended(pushed) on to the rear of the stack
@@ -142,52 +134,19 @@ if __name__ == '__main__':
     # Starts the socket connection
     client.start_connection()
 
+    # The send/receive loop
     while True:
-    #-------An example of sending data through the higher level interface-------
-    # The process behind this is:
-    # 1. Higher level function pushes data onto the send stack
-    # 2. A thread running the low level _send function sends the data
-    # 3. The low level function then pops the send stack
-    # There should be normally no data left on the send stack as demonstrated:
 
-        client.send(b"Hello World!")
-        #client._send() # Should not be normally called, should be in a thread
-        #print("stack after send:", client._send_stack)
+        # recv is placed first so that you see your response after you type
+        # TODO: make this solution less hacky
+        print(client.receive())
 
-    #---------------------------------------------------------------------------
+        # Stores input
+        s = input()
 
-    
-    #------An example of receiving data through the higher level interface------
-    # The process behind this is:
-    # 1. A thread running the low level function pushes data onto the receive
-    #    stack
-    # 2. The high level receive function is called to retrieve data from stack
-    # 3. The high level function then pops the receive stack
-    # There can be data left one the receive stack if high level function is not
-    # used to retrieve. The data will just be queued up.
-
-    #client._recv() # Should not be normally called, should be in a thread
-        client.receive()
-        #print(client.receive())
-        #print("stack after receive:", client._receive_stack)
-
-    #---------------------------------------------------------------------------
-
-
-    '''
-    # An example of popping receive data from the receive stack
-    print(client._receive_stack)
-    print(client.receive())
-    print(client._receive_stack)
-    '''
-
-    '''
-    # An example of pushing send data to the send stack
-    print(client._send_stack)
-    client.send("Hello World!")
-    print(client._send_stack)
-    '''
-
+        # Encodes the string and sends it
+        client.send(s.encode('utf-8'))
+  
     # Used to gracefully close the connction
     client.close_connection()
         
