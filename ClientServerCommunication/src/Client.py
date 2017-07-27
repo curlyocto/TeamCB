@@ -93,6 +93,7 @@ class Client():
     
     # A simple wrapper function that gracefully closes the connection
     def close_connection(self):
+        # Closes connection gracefully
         self._client_socket.close()
         self._is_connected = False
         
@@ -127,7 +128,7 @@ class Client():
             self._is_blocking = False
             
     
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Creation of the client object
     client = Client("127.0.0.1", 8990, False)
 
@@ -136,7 +137,7 @@ if __name__ == '__main__':
 
     # The send/receive loop
     while True:
-
+        
         # recv is placed first so that you see your response after you type
         # TODO: make this solution less hacky
         print(client.receive())
@@ -145,7 +146,11 @@ if __name__ == '__main__':
         s = input()
 
         # Encodes the string and sends it
-        client.send(s.encode('utf-8'))
+        client.send(s.encode("utf-8"))
+
+        # A way to quit
+        if s == "/quit":
+            break
   
     # Used to gracefully close the connction
     client.close_connection()
