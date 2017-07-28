@@ -1,3 +1,7 @@
+# David Hansen
+# Updated 7/27/17
+# A client socket script with basic functionality
+
 import socket
 import threading
 
